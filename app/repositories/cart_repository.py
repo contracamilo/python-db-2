@@ -58,3 +58,32 @@ class CartRepository:
     async def clear_cart(self, user_id: str):
         """Limpia el carrito de un usuario específico."""
         await self.collection.delete_one({"user_id": user_id})
+
+    async def checkout(self, user_id: str):
+        """Realiza el checkout, actualiza el stock de productos y limpia el carrito del usuario."""
+        cart = await self.get_cart(user_id)
+
+        if not cart.items:
+            raise HTTPException(status_code=400, detail="El carrito está vacío.")
+
+        # Verificar stock y actualizar cantidades
+        for item in cart.items:
+            product = await self.products_collection.find_one({"_id": ObjectId(item.product_id)})
+            if not product:
+                raise HTTPException(status_code=404, detail=f"Producto con ID {item.product_id} no encontrado.")
+            if product["stock"] < item.quantity:
+                raise HTTPException(status_code=400, detail=f"Stock insuficiente para el producto {product['name']}.")
+
+            # Actualizar el stock
+            await self.products_collection.update_one(
+                {"_id": ObjectId(item.product_id)},
+                {"$inc": {"stock": -item.quantity}}
+            )
+
+        # Limpiar el carrito
+        await self.collection.update_one(
+            {"user_id": user_id},
+            {"$set": {"items": []}}
+        )
+
+        return {"message": "Compra realizada con éxito y carrito vaciado."}

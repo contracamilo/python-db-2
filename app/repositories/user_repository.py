@@ -1,5 +1,4 @@
 from app.models.user import User
-from pymongo import ReturnDocument
 from bson import ObjectId
 from typing import Optional
 

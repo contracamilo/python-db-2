@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Query, HTTPException, Depends, status
-from app.auth.auth import create_access_token, verify_token, get_current_user
+from fastapi import APIRouter, HTTPException, Depends, status
+from app.auth.auth import create_access_token, get_current_user
 from app.models.product import Product
 from app.models.cart import Cart, CartItem
 from app.models.user import User, UserCreate, UserLogin
@@ -93,16 +93,16 @@ async def get_user_cart(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/checkout")
-async def checkout(user_id: str = Depends(verify_token)):
+async def checkout(current_user: User = Depends(get_current_user)):
     """Endpoint para finalizar la compra."""
     try:
-        # Procesa el checkout y maneja el stock de productos
-        result = await cart_repo.checkout(user_id)
+        result = await cart_repo.checkout(current_user.id)
         return result
     except HTTPException as e:
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error interno del servidor: " + str(e))
+
 
 
 @router.post("/products", response_model=Product)

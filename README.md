@@ -1,6 +1,6 @@
-# Proyecto de Tienda Backend API - FastAPI, MongoDB, JWT
+# Proyecto de Tienda API - Python, MongoDB y FastAPI
 
-Este proyecto es una API para una tienda en línea que permite a los usuarios realizar varias operaciones, como la visualización de productos, gestión de carritos de compra personalizados, autenticación de usuarios con tokens JWT, y la finalización de compras. La API está desarrollada en **FastAPI** y utiliza **MongoDB** para el almacenamiento de datos.
+Este proyecto es una API de tienda en línea que permite a los usuarios realizar operaciones como visualizar productos, gestionar carritos de compra y completar el proceso de compra. La API está desarrollada en **FastAPI** con una base de datos **MongoDB**.
 
 ## Tabla de Contenidos
 
@@ -19,10 +19,7 @@ Este proyecto es una API para una tienda en línea que permite a los usuarios re
 - **Python 3.9+**
 - **FastAPI**
 - **Motor** para operaciones asíncronas con MongoDB
-- **MongoDB** (puede ser local o en la nube)
-- **Pydantic v2** para la validación de modelos
-- **Email Validator** para la validación de correos electrónicos en los modelos de usuario
-- **JWT** para la autenticación de usuarios
+- **MongoDB** (puede ser local o una instancia en la nube)
 
 ## Configuración
 
@@ -32,12 +29,10 @@ Este proyecto es una API para una tienda en línea que permite a los usuarios re
    pip install -r requirements.txt
    ```
 
-2. **Configurar las variables de entorno**: Crea un archivo `.env` en el directorio raíz y define la conexión a MongoDB, la clave secreta para los JWT, y la configuración del token.
+2. **Configurar las variables de entorno**: Crea un archivo `.env` en el directorio raíz y define la conexión a MongoDB.
 
    ```plaintext
    MONGO_URL=mongodb://<usuario>:<contraseña>@<host>:<puerto>/<base_de_datos>
-   SECRET_KEY=tu_clave_secreta_para_jwt
-   ACCESS_TOKEN_EXPIRE_MINUTES=30
    ```
 
 3. **Iniciar la API**: Usa `uvicorn` para iniciar el servidor de desarrollo de FastAPI.
@@ -57,16 +52,12 @@ Proyecto/
 ├── app/
 │   ├── models/                 # Modelos de datos
 │   │   ├── product.py
-│   │   ├── cart.py
-│   │   └── user.py
+│   │   └── cart.py
 │   ├── repositories/           # Lógica de negocio
 │   │   ├── product_repository.py
-│   │   ├── cart_repository.py
-│   │   └── user_repository.py
+│   │   └── cart_repository.py
 │   ├── routers/                # Rutas o endpoints
 │   │   └── app_router.py
-│   ├── auth/                   # Funciones de autenticación
-│   │   └── auth.py
 │   ├── database.py             # Configuración de la base de datos
 ├── .env                        # Variables de entorno
 └── main.py                     # Punto de entrada de la API
@@ -76,41 +67,27 @@ Proyecto/
 
 ## Descripción de los Endpoints
 
-### Usuarios
-
-- **POST `/register`**: Registro de un nuevo usuario.
-- **POST `/login`**: Autenticación de usuario. Devuelve un token JWT que permite al usuario acceder a los endpoints protegidos.
-
 ### Productos
 
 - **GET `/products`**: Obtiene todos los productos.
 - **GET `/products/{category}`**: Obtiene los productos de una categoría específica.
-- **POST `/products`**: Crea un nuevo producto (requiere autenticación).
+- **POST `/products`**: Crea un nuevo producto.
 
 ### Carrito
 
-- **POST `/cart`**: Agrega o actualiza un producto en el carrito de un usuario específico (requiere autenticación).
-- **GET `/cart`**: Muestra el contenido del carrito del usuario autenticado.
+- **POST `/cart`**: Agrega un producto al carrito de un usuario autenticado o actualiza la cantidad si ya existe en el carrito.
+- **GET `/cart`**: Muestra el contenido del carrito de un usuario autenticado. Los productos en el carrito se proyectan con información completa como nombre, precio y stock.
 
 ### Checkout
 
-- **POST `/checkout`**: Finaliza la compra, verifica el stock de cada producto, actualiza el inventario y vacía el carrito del usuario autenticado.
+- **POST `/checkout`**: Finaliza la compra del carrito del usuario autenticado. Este proceso:
+   - Verifica el stock de cada producto en el carrito.
+   - Actualiza las cantidades de los productos en la base de datos.
+   - Vacía el carrito del usuario una vez que la compra es exitosa.
 
 ---
 
 ## Modelos de Datos
-
-### Modelo `User`
-
-Representa a un usuario registrado en la tienda.
-
-```python
-class User(BaseModel):
-    id: Optional[str] = None
-    name: str
-    email: EmailStr
-    hashed_password: str
-```
 
 ### Modelo `Product`
 
@@ -118,7 +95,7 @@ Representa un producto en la tienda.
 
 ```python
 class Product(BaseModel):
-    id: Optional[str] = None
+    id: Optional[str] = None  # Generado por MongoDB
     name: str
     category: str
     price: float
@@ -149,50 +126,9 @@ class Cart(BaseModel):
 
 ## Ejemplos de Uso
 
-### 1. Registro de Usuario
+### 1. Crear un Producto
 
-**Endpoint**: `POST /register`
-
-**Body**:
-```json
-{
-    "name": "John Doe",
-    "email": "johndoe@example.com",
-    "password": "password123"
-}
-```
-
-**Respuesta**:
-```json
-{
-    "message": "Usuario registrado exitosamente"
-}
-```
-
-### 2. Inicio de Sesión
-
-**Endpoint**: `POST /login`
-
-**Body**:
-```json
-{
-    "email": "johndoe@example.com",
-    "password": "password123"
-}
-```
-
-**Respuesta**:
-```json
-{
-    "access_token": "<token_jwt>",
-    "token_type": "bearer",
-    "user_id": "<user_id>"
-}
-```
-
-### 3. Crear un Producto
-
-**Endpoint**: `POST /products` (requiere autenticación)
+**Endpoint**: `POST /products`
 
 **Body**:
 ```json
@@ -215,9 +151,9 @@ class Cart(BaseModel):
 }
 ```
 
-### 4. Agregar un Producto al Carrito
+### 2. Agregar un Producto al Carrito
 
-**Endpoint**: `POST /cart` (requiere autenticación)
+**Endpoint**: `POST /cart`
 
 **Body**:
 ```json
@@ -234,14 +170,14 @@ class Cart(BaseModel):
 }
 ```
 
-### 5. Ver el Contenido del Carrito
+### 3. Ver el Contenido del Carrito
 
-**Endpoint**: `GET /cart` (requiere autenticación)
+**Endpoint**: `GET /cart`
 
 **Respuesta**:
 ```json
 {
-    "user_id": "<user_id>",
+    "user_id": "user123",
     "items": [
         {
             "product_id": "product_object_id_here",
@@ -254,14 +190,14 @@ class Cart(BaseModel):
 }
 ```
 
-### 6. Realizar la Compra
+### 4. Realizar la Compra (Checkout)
 
-**Endpoint**: `POST /checkout` (requiere autenticación)
+**Endpoint**: `POST /checkout`
 
 **Respuesta**:
 ```json
 {
-    "message": "Compra realizada exitosamente"
+    "message": "Compra realizada con éxito y carrito vaciado."
 }
 ```
 
@@ -269,19 +205,14 @@ class Cart(BaseModel):
 
 ## Errores y Mensajes de Respuesta
 
-1. **401 Unauthorized**:
-   - `{"detail": "Email o contraseña incorrectos"}`: Credenciales inválidas en el login.
-   - `{"detail": "No autenticado"}`: Intento de acceder a un endpoint protegido sin un token JWT válido.
-
-2. **404 Not Found**:
+1. **404 Not Found**:
    - `{"detail": "Carrito no encontrado."}`: El carrito del usuario no existe.
    - `{"detail": "Producto no encontrado."}`: El producto solicitado no existe en la base de datos.
 
-3. **400 Bad Request**:
-   - `{"detail": "Stock insuficiente para la cantidad solicitada."}`: El stock del producto es insuficiente para la cantidad solicitada.
+2. **400 Bad Request**:
+   - `{"detail": "Stock insuficiente para el producto {nombre_producto}."}`: El stock del producto es insuficiente para la cantidad solicitada.
 
-4. **500 Internal Server Error**:
+3. **500 Internal Server Error**:
    - Generalmente se debe a errores en la conexión a la base de datos o problemas de lógica. Se recomienda revisar los logs del servidor para obtener detalles específicos.
 
 ---
-

@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from fastapi.security import OAuth2PasswordBearer
 from app.database import MongoDBConnection
 from app.models.user import User
 from bson import ObjectId
