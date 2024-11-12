@@ -1,0 +1,32 @@
+### 1. Crear un Producto
+POST http://127.0.0.1:8000/products
+Content-Type: application/json
+
+{
+  "name": "Teclado Mecánico",
+  "category": "Electronics",
+  "price": 120.00,
+  "stock": 50
+}
+
+### 2. Obtener Todos los Productos
+GET http://127.0.0.1:8000/products
+
+### 3. Obtener Productos por Categoría
+GET http://127.0.0.1:8000/products/Electronics
+
+### 4. Agregar un Producto al Carrito
+POST http://127.0.0.1:8000/cart
+Content-Type: application/json
+
+{
+  "user_id": "test_user",
+  "product_id": "6729622f440b52bb352ebd41",
+  "quantity": 2
+}
+
+### 5. Ver el Contenido del Carrito
+GET http://127.0.0.1:8000/cart?user_id=test_user
+
+### 6. Realizar el Checkout
+POST http://127.0.0.1:8000/checkout?user_id=test_user

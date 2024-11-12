@@ -1,0 +1,44 @@
+# Entorno virtual
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Archivos de configuración de entorno
+.env
+
+# Archivos de bases de datos locales
+*.db
+*.sqlite
+
+# Configuración de IDEs
+.idea/
+.vscode/
+*.swp
+
+# Archivos de logs y salida de depuración
+*.log
+logs/
+*.out
+
+# Caché y archivos de pruebas
+.cache/
+coverage/
+.coverage
+pytest_cache/
+htmlcov/
+
+# Archivos de Uvicorn
+*.pid
+
+# Archivos y directorios específicos de Python
+pip-log.txt
+.tox/
+.eggs/
+*.egg-info/
+dist/
+build/
+
+# Configuración de Docker (si utilizas Docker)
+docker-compose.override.yml

@@ -1,0 +1,9 @@
+fastapi~=0.115.4
+pymongo~=4.9.2
+pydantic~=2.9.2
+motor~=3.6.0
+pytest
+httpx
+python-dotenv~=1.0.1
+starlette~=0.41.2
+passlib~=1.7.4
