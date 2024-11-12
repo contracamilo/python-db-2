@@ -82,14 +82,13 @@ async def add_to_cart(item: CartItem, current_user: User = Depends(get_current_u
     return {"message": "Producto agregado o actualizado en el carrito"}
 
 
-
-
-@router.get("/cart")
-async def add_to_cart(item: CartItem, user_id: str = Depends(verify_token)):
-    """Endpoint para ver el contenido del carrito de un usuario específico."""
-    cart = await cart_repo.add_to_cart(user_id, item.product_id, item.quantity)
-    if not cart:
-        raise HTTPException(status_code=404, detail="Carrito no encontrado.")
+@router.get("/cart", response_model=Cart)
+async def get_user_cart(current_user: User = Depends(get_current_user)):
+    """Endpoint para ver el contenido del carrito de un usuario con detalles de los productos."""
+    user_id = current_user.id
+    cart = await cart_repo.get_cart(user_id)
+    if not cart.items:
+        raise HTTPException(status_code=404, detail="Carrito vacío o no encontrado.")
     return cart
 
 
@@ -137,4 +136,3 @@ async def login(user_data: UserLogin):
         "token_type": "bearer",
         "user_id": user.id
     }
-

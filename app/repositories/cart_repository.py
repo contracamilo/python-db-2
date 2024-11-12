@@ -6,14 +6,31 @@ from bson import ObjectId
 class CartRepository:
     def __init__(self, db):
         self.collection = db["carts"]
+        self.products_collection = db["products"]
 
     async def get_cart(self, user_id: str) -> Cart:
-        """Obtiene el carrito de un usuario específico."""
+        """Obtiene el carrito de un usuario específico con los detalles de los productos."""
         cart_data = await self.collection.find_one({"user_id": user_id})
-        if cart_data:
-            # Convertir el carrito a un objeto Cart
-            return Cart(**cart_data)
-        return Cart(user_id=user_id, items=[])
+        if not cart_data:
+            return Cart(user_id=user_id, items=[])
+
+        # Traer detalles del producto para cada item en el carrito
+        items_with_details = []
+        for item in cart_data.get("items", []):
+            product_data = await self.products_collection.find_one({"_id": ObjectId(item["product_id"])})
+            if not product_data:
+                continue  # Ignorar productos que ya no existen
+            items_with_details.append(
+                CartItem(
+                    product_id=item["product_id"],
+                    quantity=item["quantity"],
+                    name=product_data.get("name"),
+                    price=product_data.get("price"),
+                    category=product_data.get("category")
+                )
+            )
+
+        return Cart(user_id=user_id, items=items_with_details)
 
     async def add_to_cart(self, user_id: str, item: CartItem):
         """Añade un producto al carrito de un usuario o actualiza la cantidad si ya existe."""
