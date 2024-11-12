@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import List, Optional
+from pydantic import BaseModel, Field
+from typing import Optional, List
 
 
 class CartItem(BaseModel):
@@ -8,6 +8,10 @@ class CartItem(BaseModel):
     name: Optional[str] = None
     price: Optional[float] = None
     category: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
 
 
 class Cart(BaseModel):

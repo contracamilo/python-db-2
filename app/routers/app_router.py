@@ -13,7 +13,7 @@ from app.repositories.user_repository import UserRepository
 
 router = APIRouter()
 
-# Obtener la conexión de la base de datos y repositorios`
+# Obtener la conexión de la base de datos y repositorios
 db = MongoDBConnection().get_db()
 product_repo = ProductRepository(db)
 cart_repo = CartRepository(db)
@@ -40,7 +40,6 @@ async def get_all_products():
         products = await product_repo.get_all_products()
         return products
     except Exception as e:
-        # Captura el error y devuelve un mensaje detallado
         raise HTTPException(status_code=500, detail="Error al obtener productos: " + str(e))
 
 
@@ -49,12 +48,11 @@ async def get_products_by_category(category: str):
     """Endpoint para obtener productos por categoría."""
     try:
         products = await product_repo.get_products_by_category(category)
-
         if not products:
             raise HTTPException(status_code=404, detail="No se encontraron productos en esta categoría.")
         return products
     except Exception as e:
-        print("Error en get_products_by_category:", e)  # Log de error
+        print("Error en get_products_by_category:", e)
         raise HTTPException(status_code=500, detail="Error interno del servidor: " + str(e))
 
 
@@ -63,7 +61,7 @@ async def add_to_cart(item: CartItem, current_user: User = Depends(get_current_u
     """
     Endpoint para agregar o actualizar un producto en el carrito del usuario autenticado.
     """
-    user_id = current_user.id  # Extraído del token JWT
+    user_id = current_user.id
 
     # Verificar si el producto existe y tiene suficiente stock
     product = await product_repo.get_product_by_id(item.product_id)
@@ -76,8 +74,7 @@ async def add_to_cart(item: CartItem, current_user: User = Depends(get_current_u
     # Llamar a `add_to_cart` del repositorio con `user_id` y `item` ya instanciado como `CartItem`
     await cart_repo.add_to_cart(user_id=user_id, item=item)
 
-    # Actualizar el stock del producto en la base de datos después de agregarlo al carrito
-    await product_repo.update_stock(item.product_id, -item.quantity)
+    # Eliminamos la actualización del stock aquí, ya que solo debe manejarse en checkout
 
     return {"message": "Producto agregado o actualizado en el carrito"}
 
@@ -104,7 +101,6 @@ async def checkout(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Error interno del servidor: " + str(e))
 
 
-
 @router.post("/products", response_model=Product)
 async def create_product(product: Product):
     """Endpoint para crear un nuevo producto en la tienda."""
@@ -127,7 +123,7 @@ async def login(user_data: UserLogin):
         )
 
     # Generar el token de acceso JWT
-    access_token_expires = timedelta(minutes=60)  # Expira en 30 minutos
+    access_token_expires = timedelta(minutes=60)
     access_token = create_access_token(data={"sub": user.id}, expires_delta=access_token_expires)
 
     # Devolver el token de acceso y el ID del usuario
